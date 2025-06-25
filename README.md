@@ -1,133 +1,112 @@
-# 🛍️ E-Commerce Microservices Platform with Kafka
+# Spring Boot Microservices
+This repository contains the latest source code of the spring-boot-microservices tutorial
 
-A distributed, event-driven e-commerce application built using a microservices architecture, Apache Kafka for messaging, and containerized for scalability. Each service is designed for single responsibility and communicates asynchronously using Kafka topics to improve performance, fault tolerance, and scalability.
+You can watch the tutorial on Youtube [here](https://youtu.be/yn_stY3HCr8?si=EjrBEUl0P-bzSWRG)
 
----
+## Services Overview
 
-## 📦 Architecture Overview
+- Product Service
+- Order Service
+- Inventory Service
+- Notification Service
+- API Gateway using Spring Cloud Gateway MVC
+- Shop Frontend using Angular 18
 
-This system follows a **modular microservices approach**, with each service handling a specific domain:
+## Tech Stack
 
-### 🔧 Core Services
+The technologies used in this project are:
 
-- **API Gateway** – Central access point to route requests to internal services.
-- **Auth Service** – Manages user authentication and JWT-based authorization.
-- **Product Service** – CRUD operations for products, categories, and inventory.
-- **Order Service** – Handles order creation, validation, and processing.
-- **Payment Service** – Processes payments and integrates with payment providers.
-- **Notification Service** – Sends emails/SMS for order updates and events.
-- **Shipping Service** – Coordinates shipping logistics and updates order status.
+- Spring Boot
+- Angular
+- Mongo DB
+- MySQL
+- Kafka
+- Keycloak
+- Test Containers with Wiremock
+- Grafana Stack (Prometheus, Grafana, Loki and Tempo)
+- API Gateway using Spring Cloud Gateway MVC
+- Kubernetes
 
-### ↺ Asynchronous Communication
 
-All services interact via **Apache Kafka**, using the following topics:
+## Application Architecture
+![image](https://github.com/user-attachments/assets/d4ef38bd-8ae5-4cc7-9ac5-7a8e5ec3c969)
 
-- `order-events`
-- `payment-events`
-- `inventory-updates`
-- `shipping-updates`
-- `notification-events`
+## How to run the frontend application
 
-This decouples services and improves resilience.
+Make sure you have the following installed on your machine:
 
----
+- Node.js
+- NPM
+- Angular CLI
 
-## 🚀 Tech Stack
+Run the following commands to start the frontend application
 
-| Layer                 | Technology                               |
-| --------------------- | ---------------------------------------- |
-| API Gateway           | Spring Cloud Gateway / Express.js        |
-| Microservices         | Java (Spring Boot) / Node.js             |
-| Messaging Queue       | Apache Kafka                             |
-| Containerization      | Docker                                   |
-| Orchestration         | Docker Compose / Kubernetes (optionally) |
-| Database              | PostgreSQL / MongoDB (per service)       |
-| Security              | JWT, HTTPS                               |
-| Monitoring (optional) | Prometheus, Grafana, ELK                 |
-
----
-
-## 📂 Project Structure
-
+```shell
+cd frontend
+npm install
+npm run start
 ```
-e-commerce-microservices-kafka/
-├── api-gateway/
-├── auth-service/
-├── product-service/
-├── order-service/
-├── payment-service/
-├── notification-service/
-├── shipping-service/
-├── kafka/
-├── docker-compose.yml
-└── README.md
+## How to build the backend services
+
+Run the following command to build and package the backend services into a docker container
+
+```shell
+mvn spring-boot:build-image -DdockerPassword=<your-docker-account-password>
 ```
 
----
+The above command will build and package the services into a docker container and push it to your docker hub account.
 
-## 🛠️ Setup & Running Locally
+## How to run the backend services
 
-> Prerequisite: Docker, Docker Compose
+Make sure you have the following installed on your machine:
 
-```bash
-# Start all services
-docker-compose up --build
+- Java 21
+- Docker
+- Kind Cluster - https://kind.sigs.k8s.io/docs/user/quick-start/#installation
+
+### Start Kind Cluster
+    
+Run the k8s/kind/create-kind-cluster.sh script to create the kind Kubernetes cluster
+
+```shell
+./k8s/kind/create-kind-cluster.sh
+```
+This will create a kind cluster and pre-load all the required docker images into the cluster, this will save you time downloading the images when you deploy the application.
+
+### Deploy the infrastructure
+
+Run the k8s/manisfests/infrastructure.yaml file to deploy the infrastructure
+
+```shell
+kubectl apply -f k8s/manifests/infrastructure.yaml
 ```
 
-### Access Points:
+### Deploy the services
 
-- API Gateway: `http://localhost:8080`
-- Kafka UI (optional): `http://localhost:8082`
+Run the k8s/manifests/applications.yaml file to deploy the services
 
----
-
-## 🔪 Testing
-
-Each service includes unit and integration tests:
-
-```bash
-# Example: auth-service
-cd auth-service
-./mvnw test
+```shell
+kubectl apply -f k8s/manifests/applications.yaml
 ```
 
----
+### Access the API Gateway
 
-## 📬 Kafka Topics & Events
+To access the API Gateway, you need to port-forward the gateway service to your local machine
 
-| Topic               | Publisher        | Subscribers                           |
-| ------------------- | ---------------- | ------------------------------------- |
-| order-events        | order-service    | payment-service, notification-service |
-| payment-events      | payment-service  | order-service                         |
-| inventory-updates   | product-service  | order-service                         |
-| shipping-updates    | shipping-service | order-service                         |
-| notification-events | all services     | notification-service                  |
+```shell
+kubectl port-forward svc/gateway-service 9000:9000
+```
 
----
+### Access the Keycloak Admin Console
+To access the Keycloak admin console, you need to port-forward the keycloak service to your local machine
 
-## 🔐 Security
+```shell
+kubectl port-forward svc/keycloak 8080:8080
+```
 
-- JWT-based authentication
-- Role-based access control (admin, customer)
-- Secure internal service communication (via Kafka)
+### Access the Grafana Dashboards
+To access the Grafana dashboards, you need to port-forward the grafana service to your local machine
 
----
-
-## 📈 Scalability & Fault Tolerance
-
-- Stateless services: easy to scale horizontally
-- Kafka: message durability, replay, and backpressure handling
-- Graceful service degradation if dependent service is down
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License.
-
----
-
-## 👨‍💼 Author
-
-Timothy Chelelgo – [GitHub](https://github.com/akhlys007) | [LinkedIn](https://linkedin.com/in/timothy-chelelgo-49872222b)
-
+```shell
+kubectl port-forward svc/grafana 3000:3000
+```
